@@ -1,10 +1,10 @@
 import { Hono } from "hono";
 import { checkToken } from "../auth/index.js";
 
-import { getUsers } from "./user.controller.js";
+import { handleUsers } from "./user.controller.js";
 
-const userRouter = new Hono().basePath("/users");
+const userRouter = new Hono();
 
-userRouter.get("/", checkToken, getUsers);
+userRouter.get("/users", checkToken, handleUsers);
 
 export default userRouter;

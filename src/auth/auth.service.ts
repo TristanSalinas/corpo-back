@@ -1,7 +1,8 @@
-import { getUserByEmail, createUser } from "../user/user.model.js";
+import { getUserByEmail, createUser } from "../user/user.manager.js";
 
 import bcrypt from "bcrypt";
 import { generateToken } from "../utils/jwt.js";
+import { HTTPException } from "hono/http-exception";
 
 //Check if user exists if not add it
 export async function register(
@@ -10,11 +11,10 @@ export async function register(
   password: string
 ) {
   if (await getUserByEmail(email)) {
-    throw new Error("User already exists");
+    throw new HTTPException(409, { message: "User already exists" });
   }
   const hashedPassword = bcrypt.hashSync(password, 10);
-  await createUser(username, username, hashedPassword, "USER");
-  return await login(username, password);
+  await createUser(username, email, hashedPassword, "USER");
 }
 
 export async function login(email: string, password: string) {

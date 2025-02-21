@@ -1,6 +1,6 @@
 import type { Context } from "hono";
-import { getAllUsers } from "./user.model.js";
+import { getUserList } from "./user.service.js";
 
-export async function getUsers(c: Context) {
-  return c.json(await getAllUsers());
+export async function handleUsers(c: Context) {
+  return c.json(await getUserList());
 }

@@ -4,9 +4,11 @@ export type Role = "USER" | "MANAGER" | "ADMIN";
 export interface User {
   id: number;
   username: string;
+  email: string;
   password: string;
   role: Role;
   created_at: string;
+  updated_at: string;
 }
 
 export async function getUserByEmail(email: string) {
@@ -27,7 +29,12 @@ export async function createUser(
   return await stmt.run(username, email, hashedPassword, role);
 }
 
-export const getAllUsers = async () => {
+export async function getAllUsers() {
   const stmt = db.prepare("SELECT * FROM users");
-  return stmt.all() as User[];
-};
+  return (await stmt.all()) as User[];
+}
+
+export async function deleteUser(id: number) {
+  const stmt = db.prepare("DELETE FROM users WHERE id = ?");
+  return await stmt.run(id);
+}

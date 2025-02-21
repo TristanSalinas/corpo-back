@@ -1,4 +1,3 @@
-import { error } from "console";
 import type { Context, Next } from "hono";
 import type { z } from "zod";
 
