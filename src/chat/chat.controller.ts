@@ -1,8 +1,11 @@
 import type { Context } from "hono";
 import { getUserById, type User } from "../user/user.manager.js";
 
-import { newPrivateConversation } from "./chat.service.js";
-import { notifyMembersOfConvCreation } from "./websocket-handler.js";
+import { newPrivateConversation, saveMessageInDb } from "./chat.service.js";
+import {
+  notifyMembersOfConvCreation,
+  sendMessage,
+} from "./websocket-handler.js";
 import {
   getAllConversationsOfUser,
   getConversationById,
@@ -42,7 +45,6 @@ export function handleConversations(c: Context) {
  * - 403: If the user is not part of the conversation.
  * - 200: A list of latest messages for the conversation.
  */
-
 export function handleMessages(c: Context) {
   const currentUser = c.get("user") as User;
 
@@ -75,7 +77,6 @@ export function handleMessages(c: Context) {
  * - 500: If the conversation cannot be created.
  * - 200: The newly created conversation object.
  */
-
 export async function handleNewPrivateConversation(c: Context) {
   const { targetUserId } = await c.req.json();
   const currentUser = c.get("user") as User;
@@ -91,4 +92,38 @@ export async function handleNewPrivateConversation(c: Context) {
   notifyMembersOfConvCreation(conversation, [currentUser.id, targetUserId]); // this will notify concerned connected members that a new conv is created
 
   return c.json(conversation);
+}
+
+/**
+ * @description
+ * Creates a new message in a given conversation.
+ * The user must be part of the conversation.
+ * If the message is successfully saved, it is broadcast to all connected users of the conversation.
+ *
+ * @param {Context} c - The context containing request and response objects.
+ *
+ * @returns
+ * - 404: If the conversation is not found.
+ * - 403: If the user is not part of the conversation.
+ * - 500: If the message cannot be created.
+ * - 200: The newly created message object.
+ */
+export async function handleNewMessage(c: Context) {
+  const { conversationId, content } = await c.req.json();
+  const currentUser = c.get("user") as User;
+
+  if (getConversationById(conversationId) === null)
+    return c.json({ error: "Conversation not found" }, 404);
+
+  if (!isUserInConversation(conversationId, currentUser.id)) {
+    return c.json({ error: "User is not part of the conversation" }, 403);
+  }
+
+  const message = saveMessageInDb(conversationId, content, currentUser.id);
+
+  if (!message) return c.json({ error: "Message could not be created" }, 500);
+
+  sendMessage(message); //this will send the message to the concerned connected members
+
+  return c.json(message, 200);
 }

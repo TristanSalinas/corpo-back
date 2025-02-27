@@ -2,10 +2,9 @@ import type { Context, Next } from "hono";
 import { verifyToken } from "../utils/jwt.js";
 import { getCookie } from "hono/cookie";
 
-//intergiciel
 export async function checkToken(c: Context, next: Next) {
   const authCookie = getCookie(c, "token");
-  
+
   if (!authCookie) {
     return c.json({ error: "Forbidden : no token" }, 403);
   }

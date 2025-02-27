@@ -51,7 +51,7 @@ const PostMessageSchema = z.object({
 });
 
 /**
- * Handles incoming WebSocket messages from a client. SortOf the "router" of the websocket.
+ * Handles incoming WebSocket messages from a client. SortOf "router" of the websocket.
  *
  * @param evt - The received WebSocket event. If the event is not a string, it is logged and ignored.
  * @param user - The user who sent the message.
@@ -97,12 +97,18 @@ function handleClientSentEvent(
   datatype = "message" | "convCreation" | "convDeletion";
   payload: Message | { conversation: Conversation; membersIds: number[] };
 }
+*/
 
 /**
- * Sends a message to all members of a conversation.
- * @param message - The message to be sent.
+ * Sends a message to all members of a conversation over their WebSocket connections.
+ *
+ * @param message - The message object containing the content and metadata of the message to be sent.
+ *
+ * The function retrieves all members of the conversation associated with the message
+ * and sends the message to each member's WebSocket connection.
  */
-function sendMessage(message: Message) {
+
+export function sendMessage(message: Message) {
   const members = getConversationMembers(message.conversation_id);
   members.forEach((member) => {
     userSockets
