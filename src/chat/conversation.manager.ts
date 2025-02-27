@@ -1,6 +1,6 @@
 import db from "../config/database.js";
 
-interface ConversationMember {
+export interface ConversationMember {
   conversation_id: number;
   user_id: number;
   is_uptodate: boolean;
@@ -8,7 +8,7 @@ interface ConversationMember {
   updated_at: string;
 }
 
-interface Conversation {
+export interface Conversation {
   conversation_id: number;
   conversation_name: string;
   is_group: boolean;

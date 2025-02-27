@@ -11,7 +11,14 @@ import {
 } from "./conversation.manager.js";
 import { getLatestMessages } from "./message.manager.js";
 
-//get all conversations ids of a user
+/**
+ * @description
+ * Returns all conversations that the currently logged in user is a part of.
+ * Each conversation is enhanced with the members of that conversation.
+ * @param {Context} c
+ * @returns
+ * - 200: A list of conversations with their members
+ */
 export function handleConversations(c: Context) {
   const currentUser = c.get("user") as User;
   const allConversationsOfUser = getAllConversationsOfUser(currentUser.id);
@@ -21,6 +28,20 @@ export function handleConversations(c: Context) {
   });
   return c.json(response, 200);
 }
+
+/**
+ * @description
+ * Retrieves messages for a specified conversation that the currently logged-in user is part of.
+ * Validates the conversation ID and checks user's membership in the conversation.
+ *
+ * @param {Context} c - The context containing request and response objects.
+ *
+ * @returns
+ * - 400: If the conversation ID is invalid.
+ * - 404: If the conversation does not exist.
+ * - 403: If the user is not part of the conversation.
+ * - 200: A list of latest messages for the conversation.
+ */
 
 export function handleMessages(c: Context) {
   const currentUser = c.get("user") as User;
@@ -41,8 +62,20 @@ export function handleMessages(c: Context) {
   return c.json(getLatestMessages(conversationId), 200);
 }
 
-//try to create a new private conversation between 2 users:
-//first check if it exists if so return conversation id
+/**
+ * @description
+ * Initiates a new private conversation between the currently logged-in user and a target user.
+ * Validates the target user and creates a new conversation if it doesn't already exist.
+ * Notifies the members of the newly created conversation.
+ *
+ * @param {Context} c - The context containing request and response objects.
+ *
+ * @returns
+ * - 404: If the target user is not found.
+ * - 500: If the conversation cannot be created.
+ * - 200: The newly created conversation object.
+ */
+
 export async function handleNewPrivateConversation(c: Context) {
   const { targetUserId } = await c.req.json();
   const currentUser = c.get("user") as User;
@@ -55,7 +88,7 @@ export async function handleNewPrivateConversation(c: Context) {
 
   if (!conversation) return c.json({ error: "Conversation not created" }, 500);
 
-  notifyMembersOfConvCreation(conversation.conversation_id); // notify connected members
+  notifyMembersOfConvCreation(conversation, [currentUser.id, targetUserId]); // notify connected members
 
   return c.json(conversation);
 }
