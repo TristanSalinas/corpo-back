@@ -54,6 +54,31 @@ export function getAllConversationsOfUser(userId: number) {
   }
 }
 
+export function getPrivateConversationBetween(
+  userId1: number,
+  userId2: number
+) {
+  try {
+    const stmt = db.prepare(`
+      SELECT c.conversation_id, c.conversation_name, c.is_group, c.created_at, c.updated_at
+      FROM conversations c
+      JOIN conversation_members cm1 ON c.conversation_id = cm1.conversation_id
+      JOIN conversation_members cm2 ON c.conversation_id = cm2.conversation_id
+      WHERE c.is_group = FALSE
+      AND cm1.user_id = ?
+      AND cm2.user_id = ?;
+      `);
+    const result = stmt.get(userId1, userId2) as Conversation | undefined;
+    if (!result) {
+      return null;
+    }
+    return result;
+  } catch (error) {
+    console.error("Error finding conversation:", error);
+    return null;
+  }
+}
+
 export function createConversation(conversationName: string, isGroup: boolean) {
   try {
     const stmt = db.prepare(`
@@ -98,6 +123,46 @@ export function addMemberToConversation(
   }
 }
 
+export function createConversationBetween(
+  userIdArray: Array<number>,
+  name: string = ""
+): Conversation | null {
+  const isGroup = userIdArray.length > 2;
+  let conversationId: number | null = null;
+
+  try {
+    db.transaction(() => {
+      const createResult = db
+        .prepare(
+          `
+        INSERT INTO conversations (conversation_name, is_group, created_at, updated_at)
+        VALUES (?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+      `
+        )
+        .run(name, isGroup);
+      conversationId = createResult.lastInsertRowid as number;
+
+      for (const userId of userIdArray) {
+        db.prepare(
+          `
+          INSERT INTO conversation_members (conversation_id, user_id, is_uptodate, created_at, updated_at)
+          VALUES (?, ?, false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        `
+        ).run(conversationId, userId);
+      }
+    })();
+
+    if (conversationId === null) {
+      console.error("Error creating conversation between users");
+      return null;
+    }
+    return getConversationById(conversationId);
+  } catch (error) {
+    console.error("Error creating conversation between users:", error);
+    return null;
+  }
+}
+
 export function countMembersInConversation(conversationId: number) {
   console.log("trying to count members in conversation : ", conversationId);
   try {
@@ -109,6 +174,19 @@ export function countMembersInConversation(conversationId: number) {
   } catch (error) {
     console.error("Error counting members in conversation:", error);
     return 0;
+  }
+}
+
+export function isUserInConversation(conversationId: number, userId: number) {
+  try {
+    const stmt = db.prepare(
+      "SELECT COUNT(*) AS member_count FROM conversation_members WHERE conversation_id = ? AND user_id = ?;"
+    );
+    const result = stmt.get(conversationId, userId) as { member_count: number };
+    return result.member_count > 0;
+  } catch (error) {
+    console.error("Error checking if user is in conversation:", error);
+    return false;
   }
 }
 

@@ -19,3 +19,5 @@ export async function getUserList() {
       };
     });
 }
+
+export function doesUserExist(userId: number) {}

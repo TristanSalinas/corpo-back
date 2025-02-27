@@ -1,6 +1,13 @@
 import db from "../config/database.js";
 
-interface Message {
+export interface partialMessage {
+  conversation_id: number;
+  sender_id: number;
+  content: string;
+  message_type: string;
+}
+
+export interface Message {
   message_id: number;
   conversation_id: number;
   sender_id: number;
@@ -8,6 +15,20 @@ interface Message {
   message_type: string;
   sent_at: string;
   updated_at: string;
+}
+
+export function getMessageById(messageId: number) {
+  try {
+    const stmt = db.prepare(`
+      SELECT * FROM messages
+      WHERE message_id = ?
+    `);
+    const result = stmt.get(messageId);
+    return result as Message | null;
+  } catch (error) {
+    console.error("Error fetching message:", error);
+    return null;
+  }
 }
 
 export function createMessage(
