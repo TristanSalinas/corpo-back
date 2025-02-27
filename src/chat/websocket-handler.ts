@@ -93,7 +93,10 @@ function handleClientSentEvent(
     ${socketEvent} from ${user.username}#${user.id} could not be parsed`);
 }
 
-//type ServerSentEvent.datatype = "message" | "convCreation" | "convDeletion";
+/* interface ServerSentEvent {
+  datatype = "message" | "convCreation" | "convDeletion";
+  payload: Message | { conversation: Conversation; membersIds: number[] };
+}
 
 /**
  * Sends a message to all members of a conversation.

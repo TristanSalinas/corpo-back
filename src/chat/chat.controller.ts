@@ -88,7 +88,7 @@ export async function handleNewPrivateConversation(c: Context) {
 
   if (!conversation) return c.json({ error: "Conversation not created" }, 500);
 
-  notifyMembersOfConvCreation(conversation, [currentUser.id, targetUserId]); // notify connected members
+  notifyMembersOfConvCreation(conversation, [currentUser.id, targetUserId]); // this will notify concerned connected members that a new conv is created
 
   return c.json(conversation);
 }

@@ -27,6 +27,9 @@ app.route("/auth", authRouter);
 
 app.route("/user", userRouter);
 
+/*if we want to have a route /chat/ws that upgrade the connection to a websocket for this app 
+  we need to apply the upgradeWebSocket created here to it's handler */
+
 app.route("/chat", chatRouterFactory(upgradeWebSocket));
 
 const port = 3000;

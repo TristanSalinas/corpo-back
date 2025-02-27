@@ -8,6 +8,11 @@ import {
 import { webSocketHandlerFactory } from "./websocket-handler.js";
 import type { NodeWebSocket } from "@hono/node-ws";
 
+/**
+ * Creates a Hono router that handles all chat routes, the server .
+ * @param {NodeWebSocket["upgradeWebSocket"]} upgradeWebSocket
+ * @returns {Hono} The Hono router
+ */
 export function chatRouterFactory(
   upgradeWebSocket: NodeWebSocket["upgradeWebSocket"] //UpgradeWebSocket type
 ) {
