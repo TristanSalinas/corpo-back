@@ -11,6 +11,7 @@ export function validateReqBody(schema: z.ZodSchema) {
         400
       );
     }
+    c.set("body", result.data);
     await next();
   };
 }

@@ -1,6 +1,7 @@
 import type { Context, Next } from "hono";
 import { verifyToken } from "../utils/jwt.js";
 import { getCookie } from "hono/cookie";
+import type { User } from "../user/user.manager.js";
 
 export async function checkToken(c: Context, next: Next) {
   const authCookie = getCookie(c, "token");
@@ -17,4 +18,16 @@ export async function checkToken(c: Context, next: Next) {
     c.set("user", user);
     await next();
   }
+}
+
+export async function checkAdmin(c: Context, next: Next) {
+  const user = c.get("user") as User;
+
+  if (!user || !user.role) {
+    return c.json({ error: "Forbidden: User not authenticated" }, 403);
+  }
+  if (user.role !== "ADMIN") {
+    return c.json({ error: "Forbidden : not admin" }, 403);
+  }
+  await next();
 }

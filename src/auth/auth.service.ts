@@ -13,7 +13,7 @@ export async function register(
   if (await getUserByEmail(email)) {
     throw new HTTPException(409, { message: "User already exists" });
   }
-  const hashedPassword = bcrypt.hashSync(password, 10);
+  const hashedPassword = hashPassword(password);
   await createUser(username, email, hashedPassword, "USER");
 }
 
@@ -25,6 +25,21 @@ export async function login(email: string, password: string) {
   if (!bcrypt.compareSync(password, user.password)) {
     return null;
   } else {
-    return generateToken(user);
+    return {
+      token: generateToken(user),
+      user: {
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        status_phrase: user.status_phrase,
+        id: user.id,
+        created_at: user.created_at,
+        updated_at: user.updated_at,
+      },
+    };
   }
+}
+
+export function hashPassword(password: string) {
+  return bcrypt.hashSync(password, 10);
 }

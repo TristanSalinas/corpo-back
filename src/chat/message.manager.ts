@@ -1,11 +1,11 @@
 import db from "../config/database.js";
 
-export interface partialMessage {
+/*export interface partialMessage {
   conversation_id: number;
   sender_id: number;
   content: string;
   message_type: string;
-}
+}*/
 
 export interface Message {
   message_id: number;
@@ -56,9 +56,10 @@ export function getLatestMessages(conversationId: number) {
       SELECT * FROM messages
       WHERE conversation_id = ?
       ORDER BY sent_at DESC
-      LIMIT 20
+      LIMIT 50
     `);
     const result = stmt.all(conversationId);
+
     return result as Array<Message>;
   } catch (error) {
     console.error("Error fetching messages:", error);

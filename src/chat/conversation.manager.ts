@@ -1,9 +1,10 @@
 import db from "../config/database.js";
+import type { UserWithoutPassword } from "../user/user.manager.js";
 
 export interface ConversationMember {
   conversation_id: number;
   user_id: number;
-  is_uptodate: boolean;
+  last_read_message_id: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -14,6 +15,9 @@ export interface Conversation {
   is_group: boolean;
   created_at: string;
   updated_at: string;
+}
+export interface EnrichedConversation extends Conversation {
+  users: UserWithoutPassword[];
 }
 
 export function getConversationById(id: number) {
@@ -54,6 +58,44 @@ export function getAllConversationsOfUser(userId: number) {
   }
 }
 
+export function getAllEnrichedConvOfUser(user_id: number) {
+  try {
+    const stmt = db.prepare(`
+      SELECT
+        c.*,
+        JSON_GROUP_ARRAY(
+          JSON_OBJECT(
+            'id', u.id,
+            'username', u.username,
+            'email', u.email,
+            'status_phrase', u.status_phrase,
+            'role', u.role,
+            'last_read_message_id', cm2.last_read_message_id,
+            'created_at', u.created_at,
+            'updated_at', u.updated_at
+          )
+        ) AS users
+      FROM conversation_members cm1
+      JOIN conversation_members cm2 ON cm1.conversation_id = cm2.conversation_id
+      JOIN users u ON cm2.user_id = u.id
+      JOIN conversations c ON cm1.conversation_id = c.conversation_id
+      WHERE cm1.user_id = ? 
+      GROUP BY c.conversation_id;
+    `);
+
+    const result = stmt.all(user_id) as Array<
+      EnrichedConversation & { users: string }
+    >;
+    return result.map((row) => ({
+      ...row,
+      users: JSON.parse(row.users) as Array<UserWithoutPassword>,
+    }));
+  } catch (error) {
+    console.error("Error finding Enriched conversation: ", error);
+    return [];
+  }
+}
+
 export function getPrivateConversationBetween(
   userId1: number,
   userId2: number
@@ -75,20 +117,6 @@ export function getPrivateConversationBetween(
     return result;
   } catch (error) {
     console.error("Error finding conversation:", error);
-    return null;
-  }
-}
-
-export function createConversation(conversationName: string, isGroup: boolean) {
-  try {
-    const stmt = db.prepare(`
-      INSERT INTO conversations (conversation_name, is_group, created_at, updated_at)
-      VALUES (?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-    `);
-    const result = stmt.run(conversationName, isGroup);
-    return result.lastInsertRowid as number;
-  } catch (error) {
-    console.error("Error creating conversation:", error);
     return null;
   }
 }
@@ -125,28 +153,27 @@ export function addMemberToConversation(
 
 export function createConversationBetween(
   userIdArray: Array<number>,
-  name: string = ""
+  name: string | null = null
 ): Conversation | null {
   const isGroup = userIdArray.length > 2;
   let conversationId: number | null = null;
-
+  console.log("creating conversation between users: ", userIdArray);
   try {
     db.transaction(() => {
-      const createResult = db
-        .prepare(
-          `
+      const stmt = db.prepare(
+        `
         INSERT INTO conversations (conversation_name, is_group, created_at, updated_at)
         VALUES (?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
       `
-        )
-        .run(name, isGroup);
-      conversationId = createResult.lastInsertRowid as number;
+      );
+      const result = stmt.run(name, isGroup ? 1 : 0);
+      conversationId = result.lastInsertRowid as number;
 
       for (const userId of userIdArray) {
         db.prepare(
           `
-          INSERT INTO conversation_members (conversation_id, user_id, is_uptodate, created_at, updated_at)
-          VALUES (?, ?, false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+          INSERT INTO conversation_members (conversation_id, user_id, last_read_message_id, created_at, updated_at)
+          VALUES (?, ?, null, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
         `
         ).run(conversationId, userId);
       }

@@ -1,6 +1,8 @@
 import type { Context } from "hono";
 import { login, register } from "./auth.service.js";
 import { deleteCookie, setCookie } from "hono/cookie";
+import { removePassword } from "../user/user.service.js";
+import type { User } from "../user/user.manager.js";
 
 //check si possible puis appel le bon service
 export async function handleRegister(c: Context) {
@@ -17,20 +19,24 @@ export async function handleRegister(c: Context) {
 export async function handleLogin(c: Context) {
   const { email, password } = await c.req.json();
   try {
-    const token = await login(email, password);
+    const log = await login(email, password);
 
-    if (!token) {
+    if (!log) {
       return c.json({ error: "Invalid email or password" }, 401);
     }
-    setCookie(c, "token", token, {
+    setCookie(c, "token", log.token, {
       httpOnly: true,
     });
 
-    return c.json({ success: true });
+    return c.json({ user: log.user }, 200);
   } catch (error) {
     console.error(error);
     return c.json({ error: "Invalid request body" }, 400);
   }
+}
+
+export function handleWhoAmI(c: Context) {
+  return c.json({ user: removePassword([c.get("user") as User])[0] }, 200);
 }
 
 export async function handleLogout(c: Context) {

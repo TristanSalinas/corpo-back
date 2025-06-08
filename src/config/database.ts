@@ -17,6 +17,7 @@ const initializeDatabase = () => {
       username TEXT NOT NULL,
       email TEXT NOT NULL,
       password TEXT NOT NULL,
+      status_phrase TEXT, 
       role TEXT NOT NULL,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -41,7 +42,7 @@ const initializeDatabase = () => {
     CREATE TABLE IF NOT EXISTS conversation_members (
       conversation_id INTEGER,
       user_id INTEGER,
-      is_uptodate BOOLEAN NOT NULL DEFAULT FALSE,
+      last_read_message_id INTEGER DEFAULT NULL,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       PRIMARY KEY (conversation_id, user_id),
@@ -111,7 +112,8 @@ const initializeDatabase = () => {
     `
   ).run();
 };
-//dropAllTables();
+
 initializeDatabase();
+//dropAllTables();
 
 export default db;

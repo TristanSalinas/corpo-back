@@ -6,24 +6,26 @@ export interface User {
   username: string;
   email: string;
   password: string;
+  status_phrase: string;
   role: Role;
   created_at: string;
   updated_at: string;
 }
+export type UserWithoutPassword = Omit<User, "password">;
 
-export async function getUserByEmail(email: string) {
+export function getUserByEmail(email: string) {
   const stmt = db.prepare("SELECT * FROM users WHERE email = ?");
-  return (await stmt.get(email)) as User | undefined;
+  return stmt.get(email) as User | undefined;
 }
 
-export async function getUserById(id: number) {
+export function getUserById(id: number) {
   const stmt = db.prepare(`
     SELECT * FROM users WHERE id = ?
     `);
-  return (await stmt.get(id)) as User | undefined;
+  return stmt.get(id) as User | undefined;
 }
 
-export async function createUser(
+export function createUser(
   username: string,
   email: string,
   hashedPassword: string,
@@ -33,15 +35,36 @@ export async function createUser(
     INSERT INTO users (username, email, password, role)
     VALUES (?, ?, ?, ?)
   `);
-  return await stmt.run(username, email, hashedPassword, role);
+  return stmt.run(username, email, hashedPassword, role);
 }
 
-export async function getAllUsers() {
+export function getAllUsers() {
   const stmt = db.prepare("SELECT * FROM users");
-  return (await stmt.all()) as User[];
+  return stmt.all() as User[];
 }
 
-export async function deleteUser(id: number) {
+export function updateUser(id: number, data: Partial<User>) {
+  const stmt = db.prepare(`
+    UPDATE users
+    SET username = COALESCE(?, username),
+        email = COALESCE(?, email),
+        password = COALESCE(?, password),
+        status_phrase = COALESCE(?, status_phrase),
+        role = COALESCE(?, role),
+        updated_at = CURRENT_TIMESTAMP
+    WHERE id = ?
+  `);
+  return stmt.run(
+    data.username,
+    data.email,
+    data.password,
+    data.status_phrase,
+    data.role,
+    id
+  );
+}
+
+export function deleteUser(id: number) {
   const stmt = db.prepare("DELETE FROM users WHERE id = ?");
-  return await stmt.run(id);
+  return stmt.run(id);
 }

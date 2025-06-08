@@ -6,9 +6,10 @@ import authRouter from "./auth/auth.route.js";
 import userRouter from "./user/user.route.js";
 import { chatRouterFactory } from "./chat/chat.route.js";
 import { createNodeWebSocket } from "@hono/node-ws";
+import { csrf } from "hono/csrf";
 
 const app = new Hono();
-
+app.use(logger());
 app.use(
   "*",
   cors({
@@ -16,12 +17,11 @@ app.use(
     credentials: true,
   })
 );
+//app.use(csrf({ origin: "http://localhost:4200" }));
 
 export const { injectWebSocket, upgradeWebSocket } = createNodeWebSocket({
   app,
 });
-
-app.use(logger());
 
 app.route("/auth", authRouter);
 

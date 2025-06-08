@@ -1,23 +1,25 @@
-import { getAllUsers } from "./user.manager.js";
+import {
+  getAllUsers,
+  type User,
+  type UserWithoutPassword,
+} from "./user.manager.js";
 
 //we don't want to send the password
-export async function getUserList() {
-  const list = await getAllUsers();
-  return list
-    .filter((user) => {
-      return (
-        user.username && user.email && user.role && user.id && user.created_at
-      );
-    })
-    .map((user) => {
-      return {
-        username: user.username,
-        email: user.email,
-        role: user.role,
-        id: user.id,
-        created_at: user.created_at,
-      };
-    });
+export function getUserList() {
+  const list = getAllUsers();
+  return removePassword(list);
 }
 
-export function doesUserExist(userId: number) {}
+export function removePassword(users: User[]): UserWithoutPassword[] {
+  return users.map((user) => {
+    return {
+      username: user.username,
+      email: user.email,
+      role: user.role,
+      status_phrase: user.status_phrase,
+      id: user.id,
+      created_at: user.created_at,
+      updated_at: user.updated_at,
+    };
+  });
+}
