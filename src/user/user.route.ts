@@ -14,8 +14,9 @@ import {
 
 const userRouter = new Hono();
 
-userRouter.get("/users", checkToken, handleUsers);
 
+
+userRouter.get("/users", checkToken, handleUsers);
 userRouter.patch(
   "/current-user",
   checkToken,

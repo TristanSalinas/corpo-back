@@ -17,8 +17,8 @@ export async function register(
   await createUser(username, email, hashedPassword, "USER");
 }
 
-export async function login(email: string, password: string) {
-  const user = await getUserByEmail(email);
+export function login(email: string, password: string) {
+  const user =  getUserByEmail(email);
   if (!user) {
     return null;
   }

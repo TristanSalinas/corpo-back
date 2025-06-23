@@ -62,6 +62,8 @@ function handleClientSentEvent(
     );
 
     const { conversationId, content } = messageParse.data.payload;
+    
+    //TODO : Double Check if user is in the targeted conv For group conv.
     const newMessage = saveMessageInDb(conversationId, content, user.id);
 
     if (!newMessage) {

@@ -57,7 +57,7 @@ export function updateUser(id: number, data: Partial<User>) {
   return stmt.run(
     data.username,
     data.email,
-    data.password,
+    data.password, 
     data.status_phrase,
     data.role,
     id

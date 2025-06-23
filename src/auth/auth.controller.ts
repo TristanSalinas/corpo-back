@@ -31,7 +31,7 @@ export async function handleLogin(c: Context) {
     return c.json({ user: log.user }, 200);
   } catch (error) {
     console.error(error);
-    return c.json({ error: "Invalid request body" }, 400);
+    return c.json({ message: "Invalid request body", error : error }, 400);
   }
 }
 

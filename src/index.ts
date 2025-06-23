@@ -6,30 +6,28 @@ import authRouter from "./auth/auth.route.js";
 import userRouter from "./user/user.route.js";
 import { chatRouterFactory } from "./chat/chat.route.js";
 import { createNodeWebSocket } from "@hono/node-ws";
-import { csrf } from "hono/csrf";
 
 const app = new Hono();
-app.use(logger());
-app.use(
-  "*",
-  cors({
-    origin: "http://localhost:4200",
-    credentials: true,
-  })
-);
-//app.use(csrf({ origin: "http://localhost:4200" }));
-
 export const { injectWebSocket, upgradeWebSocket } = createNodeWebSocket({
   app,
 });
 
-app.route("/auth", authRouter);
+app.use(logger());
 
+//TODO app.use("csrf")
+app.use(
+  "*",
+  cors({
+    origin: "http://localhost:4200", //TODO Use dotEnv
+    credentials: true,
+  })
+);
+
+app.route("/auth", authRouter);
 app.route("/user", userRouter);
 
 /*if we want to have a route /chat/ws that upgrade the connection to a websocket for this app 
   we need to apply the upgradeWebSocket created here to it's handler */
-
 app.route("/chat", chatRouterFactory(upgradeWebSocket));
 
 const port = 3000;
