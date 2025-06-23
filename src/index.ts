@@ -16,7 +16,7 @@ app.use(logger());
 
 //TODO app.use("csrf")
 
-const FRONT_ORIGIN = process.env.FRONT_ORIGIN ?? "";
+const FRONT_ORIGIN = process.env.FRONT_ORIGIN ?? "http://localhost:4200";
 app.use(
   "*",
   cors({
