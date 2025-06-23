@@ -2,7 +2,8 @@
   "name": "corpo-back",
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/index.ts"
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc"
   },
   "dependencies": {
     "@hono/node-server": "^1.13.8",

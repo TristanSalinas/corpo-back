@@ -15,10 +15,12 @@ export const { injectWebSocket, upgradeWebSocket } = createNodeWebSocket({
 app.use(logger());
 
 //TODO app.use("csrf")
+
+const FRONT_ORIGIN = process.env.FRONT_ORIGIN ?? "";
 app.use(
   "*",
   cors({
-    origin: "http://localhost:4200", //TODO Use dotEnv
+    origin: FRONT_ORIGIN,
     credentials: true,
   })
 );
